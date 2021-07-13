@@ -24,9 +24,9 @@ public class Node : MonoBehaviour
 
     public void AddNodeConnection(Node node)
     {
-        foreach (var nodeCon in connections)
+        foreach (var n in connections) // TODO make connections a dictionary
         {
-            if (nodeCon == node)
+            if (n == node)
             {
                 return;
             }
@@ -34,9 +34,10 @@ public class Node : MonoBehaviour
         connections.Add(node);
         Vector3 startNode = this.transform.position;
         Vector3 endNode = node.transform.position;
-        Debug.Log("StartNode:"+startNode+" EndNode:"+endNode);
-        _lr.positionCount += 2;
-        var posCount = _lr.positionCount;
+        var positionCount = _lr.positionCount;
+        positionCount += 2;
+        _lr.positionCount = positionCount;
+        var posCount = positionCount;
         _lr.SetPosition(posCount-2,startNode);
         _lr.SetPosition(posCount-1,endNode);
         _lr.enabled = true;
