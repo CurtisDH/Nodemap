@@ -1,16 +1,17 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
 using Managers.EventManager;
+using UI;
 using UnityEngine;
 
 public class UserInteraction : MonoBehaviour
 {
     private Vector3 _initalPosition = new Vector3();
-    [SerializeField] private LineRenderer _lr = new();
-    [SerializeField] private Node _selectedNode;
-    [SerializeField] private Node _endNode;
+    [SerializeField] private LineRenderer lr = new();
+    [SerializeField] private Node selectedNode;
+    [SerializeField] private Node endNode;
+    [SerializeField] private Node contextMenuNode;
     private Camera _mainCam;
+    [SerializeField] private bool hoveringOverContextMenu;
 
     public bool invertedCameraZoom;
     public bool invertedCamera;
@@ -18,7 +19,10 @@ public class UserInteraction : MonoBehaviour
 
     //drag controls
     public float cameraDragSpeed = 2;
-    private Vector3 origin;
+    private Vector3 _origin;
+
+    [SerializeField] private GameObject[] MenuCanvasUIs;
+    [SerializeField] private GameObject NodeUICanvas;
 
     private void OnEnable()
     {
@@ -26,68 +30,100 @@ public class UserInteraction : MonoBehaviour
         EventManager.Listen("NodeMouseDown", (Action<Node>) OnNodeMouseDown);
         EventManager.Listen("NodeMouseUp", (Action<Node>) OnNodeMouseUp);
         EventManager.Listen("NodeMouseRightClick", (Action<Node>) OnNodeMouseRightClick);
+        EventManager.Listen("OnContextMenuHover", (Action<bool>) ToggleContextMenu);
+        EventManager.Listen("OnNodeSelectFromContextMenu", (Action<Node>) ChangeSelectedNode);
+    }
+
+    private void ChangeSelectedNode(Node node)
+    {
+        contextMenuNode = node;
+    }
+
+    public void ToggleContextMenu(bool toggle)
+    {
+        hoveringOverContextMenu = toggle;
     }
 
     private void OnNodeMouseRightClick(Node node)
     {
-        if (_selectedNode != node)
-        {
-            _endNode = node;
-        }
+        NodeUICanvas.SetActive(true);
+        contextMenuNode = node;
+    }
+
+    public void NodePanelDeleteNode()
+    {
+        //TODO Send a second prompt to confirm
+        Destroy(contextMenuNode.gameObject); //TODO put into a deactivated menu where CTRL-Z can bring back the Node.
+    }
+
+    public void ViewSelectedNodeConnections()
+    {
+        UIManager.Instance.PopulateConnections(contextMenuNode.Connections);
+        UIManager.Instance.AddNodeButtonsToConnectionContextMenu();
     }
 
     private void OnNodeMouseUp(Node node)
     {
-        if (_selectedNode != node)
+        if (selectedNode != node)
         {
-            _endNode = node;
+            endNode = node;
         }
     }
 
     private void OnNodeMouseDown(Node node)
     {
-        _selectedNode = node;
+        selectedNode = node;
     }
 
     void Update()
     {
         CameraControl();
-        if (_selectedNode is not null)
+        if (selectedNode is not null)
         {
             NodeControl();
             return;
         }
 
-        ClickAndDrag();
+        if (!hoveringOverContextMenu)
+        {
+            ClickAndDrag();
+        }
     }
 
     private void ClickAndDrag()
     {
-        if(Input.GetMouseButton(0))
+        if (Input.GetMouseButton(0))
         {
             if (Input.GetMouseButtonDown(0))
             {
-                origin = Input.mousePosition;
+                _origin = Input.mousePosition;
                 return;
+            }
+
+            NodeUICanvas.SetActive(false);
+            foreach (var element in MenuCanvasUIs)
+            {
+                element.SetActive(false);
             }
 
             Cursor.lockState = CursorLockMode.Locked;
             if (!invertedCamera)
             {
-                Vector3 pos = _mainCam.ScreenToViewportPoint(Input.mousePosition - origin);
+                Vector3 pos = _mainCam.ScreenToViewportPoint(Input.mousePosition - _origin);
                 Vector3 translation = new Vector3(pos.x * cameraDragSpeed, pos.y * cameraDragSpeed, 0);
 
                 transform.Translate(translation, Space.World);
-                origin = Input.mousePosition;
+                _origin = Input.mousePosition;
             }
             else
             {
-                Vector3 pos = _mainCam.ScreenToViewportPoint(origin - Input.mousePosition);
+                Vector3 pos = _mainCam.ScreenToViewportPoint(_origin - Input.mousePosition);
                 Vector3 translation = new Vector3(pos.x * cameraDragSpeed, pos.y * cameraDragSpeed, 0);
 
                 transform.Translate(translation, Space.World);
-                origin = Input.mousePosition; // so it feels less sticky
+                _origin = Input.mousePosition; // so it feels less sticky
             }
+
             Cursor.lockState = CursorLockMode.None;
         }
     }
@@ -101,32 +137,32 @@ public class UserInteraction : MonoBehaviour
         {
             _initalPosition = _mainCam.ScreenToWorldPoint(new Vector3(
                 mousePosition.x, mousePosition.y, 10));
-            _lr.enabled = true;
+            lr.enabled = true;
         }
 
         if (Input.GetKey(KeyCode.Mouse0))
         {
-            _lr.startWidth = .2f;
-            _lr.endWidth = .2f;
-            _lr.positionCount = 2;
-            _lr.SetPosition(0, _initalPosition);
-            _lr.SetPosition(1, worldSpacemousePos);
+            lr.startWidth = .2f;
+            lr.endWidth = .2f;
+            lr.positionCount = 2;
+            lr.SetPosition(0, _initalPosition);
+            lr.SetPosition(1, worldSpacemousePos);
             //send ray, if a node is hit then do the following
         }
 
         if (Input.GetKeyUp(KeyCode.Mouse0))
         {
-            if (_endNode is not null)
+            if (endNode is not null)
             {
-                if (_selectedNode != _endNode)
+                if (selectedNode != endNode)
                 {
-                    _selectedNode.AddNodeConnection(_endNode);
+                    selectedNode.AddNodeConnection(endNode);
                 }
             }
 
-            _selectedNode = null;
-            _endNode = null;
-            _lr.enabled = false;
+            selectedNode = null;
+            endNode = null;
+            lr.enabled = false;
         }
     }
 
