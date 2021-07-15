@@ -1,6 +1,9 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Text;
 using Managers.EventManager;
+using SFB;
 using TMPro;
 using Unity.VisualScripting;
 using UnityEngine;
@@ -21,6 +24,8 @@ namespace UI
         [SerializeField] private TMP_InputField nameInputField, sizeInputField;
         [SerializeField] private GameObject nodeContainer;
         [SerializeField] private UserInteraction userInt;
+        [SerializeField] private string lastOpenedPathCfg = "LastOpenedPath.cfg";
+
 
         public static UIManager Instance
         {
@@ -78,7 +83,6 @@ namespace UI
                 eventTrigger.triggers.Add(eventType);
 
 
-
                 buttonDelete.onClick.AddListener(delegate { userInt.RemoveNodeConnectFromContextMenuNode(node, obj); });
                 button.onClick.AddListener(delegate { ChangePanel(0, node); });
                 populatedButtons.Add(obj);
@@ -117,6 +121,26 @@ namespace UI
                 return;
             }
         }
+        public void OpenFileBrowser()
+        {
+            //TODO store last opened file in json
+            var paths = StandaloneFileBrowser.OpenFilePanel("Select Image", GetLastOpenedPath(), "", false);
+            using FileStream fs = File.OpenWrite(Application.persistentDataPath + @"/" + lastOpenedPathCfg);
+
+            Byte[] data = new UTF8Encoding(true).GetBytes(paths[0]);
+            fs.Write(data, 0, data.Length);
+
+            foreach (var path in paths)
+            {
+                Debug.Log(path);
+            }
+        }
+
+        private string GetLastOpenedPath()
+        {
+            return Path.GetDirectoryName(
+                File.ReadAllText(Application.persistentDataPath + "/" + lastOpenedPathCfg));
+        }
 
         private void Update()
         {
@@ -130,7 +154,23 @@ namespace UI
         {
             return _connections;
         }
-        
     }
 
+    public class ImageDetails
+    {
+        public string FileNameWithoutExtension;
+        public string FileNameWithExtension;
+        public string Directory;
+        public string Extension;
+        public string FullPath;
+
+        public ImageDetails(string filePath)
+        {
+            Extension = Path.GetExtension(filePath);
+            FileNameWithExtension = Path.GetFileName(filePath);
+            FileNameWithExtension = Path.GetFileNameWithoutExtension(filePath);
+            Directory = Path.GetDirectoryName(filePath);
+            FullPath = filePath;
+        }
+    }
 }
