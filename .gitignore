@@ -39,3 +39,4 @@ sysinfo.txt
 *.log
 Logs/AssetImportWorker1.log
 *.meta
+*.log
