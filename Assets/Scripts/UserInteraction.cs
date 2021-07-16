@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Runtime.Remoting.Messaging;
 using Managers.EventManager;
 using UI;
@@ -51,8 +52,13 @@ public class UserInteraction : MonoBehaviour
     private GameObject nodeUICanvas;
 
     [SerializeField] private GameObject[] emptyRightClickContextMenus;
-    private bool _bConnectionTool = true, _bMoveTool, _bHoveringOverNode;
+    private bool _bConnectionTool = true, _bMoveTool, _bHoveringOverNode, _bSelectTool;
     [SerializeField] private float zoomTowardsMouseFactor;
+
+    [SerializeField] private List<Node> selectedNodes;
+//TODO add ctrl C, ctrl V copy and paste.
+    //TODO: Add a selection tool in which you can click and drag to select multiple nodes and interact with them
+
 
     private void OnEnable()
     {
@@ -84,16 +90,34 @@ public class UserInteraction : MonoBehaviour
 
     public void ConnectionTool()
     {
-        hoveringOverContextMenu = false;
+        DisableAllTools();
         _bConnectionTool = true;
-        _bMoveTool = false;
     }
 
-    public void MoveTool()
+    public void MoveTool() // Single Node
     {
-        hoveringOverContextMenu = false;
-        _bConnectionTool = false;
+        DisableAllTools();
         _bMoveTool = true;
+    }
+
+    public void SelectTool() // Multiple Node Selection
+    {
+        DisableAllTools();
+        _bSelectTool = true;
+    }
+
+    private void DisableAllTools()
+    {
+        foreach (var node in selectedNodes)
+        {
+            node.Highlight(false);
+        }
+
+        selectedNodes.Clear();
+        hoveringOverContextMenu = false;
+        _bSelectTool = false;
+        _bConnectionTool = false;
+        _bMoveTool = false;
     }
 
     public void MoveMenusToNode(Node node)
@@ -168,7 +192,10 @@ public class UserInteraction : MonoBehaviour
 
     private void OnNodeMouseDown(Node node)
     {
-        selectedNode = node;
+        if(!_bSelectTool)
+        {
+            selectedNode = node;
+        }
     }
 
     void Update() //TODO: Figure out a better way to handle input.. i.e keybindings.
@@ -183,15 +210,81 @@ public class UserInteraction : MonoBehaviour
         //TODO: Add keybinds for tool shortcuts -- e.g V=Move/Selection Tool, C=Connections,N=Create new node etc..
         if (!hoveringOverContextMenu)
         {
+            SelectionTool();
             //TODO: Allow user to drag camera around while menu is open -- Annoying to edit nodes 
             //TODO: Implement Escape key to back out of all menus
             CameraControl();
             ClickAndDrag(2);
-            ClickAndDrag(0);
-            RightClickContextMenu();
+            if(!_bSelectTool)
+            {
+                ClickAndDrag(0);
+            }
+            if (!_bHoveringOverNode)
+            {
+                RightClickContextMenu();
+            }
         }
     }
+    [SerializeField]
+    private bool bSelecting;
+    [SerializeField]
+    private Vector2 startPos;
+    [SerializeField] private RectTransform selectionBox;
+    [SerializeField]
+    private Vector2 posMouse;
 
+    public void SelectionTool()
+    {
+        if (_bSelectTool)
+        {
+            if (Input.GetMouseButtonDown(0) && !bSelecting)
+            {
+                bSelecting = true;
+                UpdateSelectionBox(Input.mousePosition);
+                startPos = (Input.mousePosition);
+            }
+
+            if (Input.GetMouseButton(0))
+            {
+                if (bSelecting)
+                {
+                    UpdateSelectionBox(Input.mousePosition);
+                }
+            }
+
+            if (Input.GetMouseButtonUp(0))
+            {
+                foreach (var activeNode in selectedNodes)
+                {
+                    activeNode.Highlight(false);
+                }
+                selectedNodes.Clear();
+                bSelecting = false;
+                selectionBox.gameObject.SetActive(false);
+                Vector2 min = selectionBox.anchoredPosition - (selectionBox.sizeDelta / 2);
+                Vector2 max = selectionBox.anchoredPosition + (selectionBox.sizeDelta / 2);
+                foreach (var keyValuePair in SceneManager.Instance.GetActiveNodes())
+                {
+                    Vector3 screenPos = _mainCam.WorldToScreenPoint(keyValuePair.Key.transform.position);
+                    if (screenPos.x > min.x && screenPos.x < max.x && screenPos.y > min.y && screenPos.y < max.y)
+                    {
+                        selectedNodes.Add(keyValuePair.Value);
+                        keyValuePair.Value.Highlight(true);
+                    }
+                }
+            }
+        }
+    }
+    void UpdateSelectionBox(Vector2 curMousePos)
+    {
+        posMouse = curMousePos;
+        if (!selectionBox.gameObject.activeInHierarchy)
+            selectionBox.gameObject.SetActive(true);
+        float width = curMousePos.x - startPos.x;
+        float height = curMousePos.y - startPos.y;
+        selectionBox.sizeDelta = new Vector2(Mathf.Abs(width), Mathf.Abs(height));
+        selectionBox.anchoredPosition = startPos + new Vector2(width / 2, height / 2);
+    }
     public void RemoveNodeConnectFromContextMenuNode(Node nodeConnectionToRemove, GameObject objToDestroy)
     {
         contextMenuNode.RemoveNodeConnection(nodeConnectionToRemove);
@@ -201,24 +294,20 @@ public class UserInteraction : MonoBehaviour
 
     private void RightClickContextMenu()
     {
-        //TODO: Add a selection tool in which you can click and drag to select multiple nodes and interact with them
-        if (!_bHoveringOverNode)
+        if (Input.GetMouseButtonDown(1))
         {
-            if (Input.GetMouseButtonDown(1))
+            DisableNodeContextMenus();
+            var mousePosition = (Input.mousePosition);
+            Vector3 worldSpacemousePos = _mainCam.ScreenToWorldPoint(new Vector3(
+                mousePosition.x, mousePosition.y, 20));
+            foreach (var menu in emptyRightClickContextMenus)
             {
-                DisableNodeContextMenus();
-                var mousePosition = (Input.mousePosition);
-                Vector3 worldSpacemousePos = _mainCam.ScreenToWorldPoint(new Vector3(
-                    mousePosition.x, mousePosition.y, 20));
-                foreach (var menu in emptyRightClickContextMenus)
-                {
-                    menu.SetActive(false); //deactivate all previous menus
-                    menu.transform.position =
-                        new Vector3(worldSpacemousePos.x, worldSpacemousePos.y, contextMenuZOffset);
-                }
-
-                emptyRightClickContextMenus[0].SetActive(true); // this should always be the primary menu.
+                menu.SetActive(false); //deactivate all previous menus
+                menu.transform.position =
+                    new Vector3(worldSpacemousePos.x, worldSpacemousePos.y, contextMenuZOffset);
             }
+
+            emptyRightClickContextMenus[0].SetActive(true); // this should always be the primary menu.
         }
     }
 
@@ -231,7 +320,8 @@ public class UserInteraction : MonoBehaviour
                 _origin = Input.mousePosition;
                 return;
             }
-            if(mouseButton == 0)
+
+            if (mouseButton == 0)
             {
                 nodeUICanvas.SetActive(false);
                 foreach (var element in nodeContextMenus)
@@ -328,7 +418,6 @@ public class UserInteraction : MonoBehaviour
         }
     }
 
-
     private void CameraControl()
     {
         if (Input.GetAxis("Mouse ScrollWheel") > 0)
@@ -337,7 +426,7 @@ public class UserInteraction : MonoBehaviour
             mousePos = _mainCam.ScreenToWorldPoint(mousePos);
             var position = this.transform.position;
             position = Vector3.MoveTowards(position,
-                new Vector3(mousePos.x,mousePos.y,position.z),zoomTowardsMouseFactor);
+                new Vector3(mousePos.x, mousePos.y, position.z), zoomTowardsMouseFactor);
             this.transform.position = position;
         }
 

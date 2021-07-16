@@ -5,11 +5,11 @@ using System.Text;
 using Managers.EventManager;
 using SFB;
 using TMPro;
-using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.Serialization;
 using UnityEngine.UI;
+
 
 namespace UI
 {
@@ -134,7 +134,10 @@ namespace UI
         public void CreateNode()
         {
             var obj = Instantiate(nodePrefab, parent: nodeContainer.transform);
+            obj.transform.position = Camera.main.ScreenToWorldPoint(new Vector3(Input.mousePosition.x,
+                Input.mousePosition.y, obj.transform.position.z));
             var node = obj.GetComponent<Node>();
+            SceneManager.Instance.AddNodeToDictionary(node);
             string name = nameInputField.text;
             obj.name = name;
             node.SetName(name);
@@ -195,6 +198,15 @@ namespace UI
                 Debug.LogWarning($"Exception returning {size}:{e.Message}");
                 node.SetSize(size, size);
                 return;
+            }
+        }
+
+        public void ChangeContextMenuNodeImage()
+        {
+            OpenFileBrowser();
+            if(selectedSprite is not null)
+            {
+                userInt.GetContextMenuNode.imageComp.sprite = selectedSprite;
             }
         }
 

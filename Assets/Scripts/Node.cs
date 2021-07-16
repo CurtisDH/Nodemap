@@ -125,6 +125,7 @@ public class Node : MonoBehaviour
 
     private void OnDestroy()
     {
+        SceneManager.Instance.RemoveNodeFromDictionary(this);
         var TempList = new List<Node>(); //TODO:fix this shit 
         foreach (var n in connections)
         {
