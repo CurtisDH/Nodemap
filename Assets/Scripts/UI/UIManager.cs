@@ -137,7 +137,6 @@ namespace UI
             obj.transform.position = Camera.main.ScreenToWorldPoint(new Vector3(Input.mousePosition.x,
                 Input.mousePosition.y, obj.transform.position.z));
             var node = obj.GetComponent<Node>();
-            SceneManager.Instance.AddNodeToDictionary(node);
             string name = nameInputField.text;
             obj.name = name;
             node.SetName(name);

@@ -143,6 +143,16 @@ public class Node : MonoBehaviour
         }
     }
 
+    private void OnDisable()
+    {
+        SceneManager.Instance.RemoveNodeFromDictionary(this);
+    }
+
+    private void OnEnable()
+    {
+        SceneManager.Instance.AddNodeToDictionary(this);
+    }
+
     private void OnMouseDown()
     {
         EventManager.RaiseEvent("NodeMouseDown", this);

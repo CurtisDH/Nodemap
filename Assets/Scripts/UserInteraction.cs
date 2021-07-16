@@ -190,11 +190,24 @@ public class UserInteraction : MonoBehaviour
         }
     }
 
+    private bool _bMultiSelectNodeSelected;
+    [SerializeField] private Node OnMultiSelectNode;
+
     private void OnNodeMouseDown(Node node)
     {
-        if(!_bSelectTool)
+        if (!_bSelectTool)
         {
             selectedNode = node;
+            return;
+        }
+
+        foreach (var n in selectedNodes)
+        {
+            if (n == node)
+            {
+                OnMultiSelectNode = n;
+                _bMultiSelectNodeSelected = true;
+            }
         }
     }
 
@@ -215,26 +228,51 @@ public class UserInteraction : MonoBehaviour
             //TODO: Implement Escape key to back out of all menus
             CameraControl();
             ClickAndDrag(2);
-            if(!_bSelectTool)
+            if (!_bSelectTool)
             {
                 ClickAndDrag(0);
             }
+
             if (!_bHoveringOverNode)
             {
                 RightClickContextMenu();
             }
         }
     }
-    [SerializeField]
-    private bool bSelecting;
-    [SerializeField]
-    private Vector2 startPos;
+
+    [SerializeField] private bool bSelecting;
+    [SerializeField] private Vector2 startPos;
     [SerializeField] private RectTransform selectionBox;
-    [SerializeField]
-    private Vector2 posMouse;
+    [SerializeField] private Vector2 posMouse;
 
     public void SelectionTool()
     {
+        if (_bMultiSelectNodeSelected)
+        {
+            if (Input.GetMouseButton(0))
+            {
+                Vector3 pos = _mainCam.ScreenToViewportPoint(Input.mousePosition -
+                                                             _mainCam.WorldToScreenPoint(OnMultiSelectNode.transform
+                                                                 .position));
+                Vector3 translation = new Vector3(pos.x * cameraDragSpeed, pos.y * cameraDragSpeed, 0);
+                foreach (var node in selectedNodes)
+                {
+                    node.RedrawLineRendererConnections();
+                    node.transform.Translate(translation, Space.World);
+                }
+
+                _origin = Input.mousePosition;
+            }
+
+            if (Input.GetMouseButtonUp(0))
+            {
+                _bMultiSelectNodeSelected = false;
+                OnMultiSelectNode = null;
+            }
+
+            return;
+        }
+
         if (_bSelectTool)
         {
             if (Input.GetMouseButtonDown(0) && !bSelecting)
@@ -258,6 +296,7 @@ public class UserInteraction : MonoBehaviour
                 {
                     activeNode.Highlight(false);
                 }
+
                 selectedNodes.Clear();
                 bSelecting = false;
                 selectionBox.gameObject.SetActive(false);
@@ -275,6 +314,7 @@ public class UserInteraction : MonoBehaviour
             }
         }
     }
+
     void UpdateSelectionBox(Vector2 curMousePos)
     {
         posMouse = curMousePos;
@@ -285,6 +325,7 @@ public class UserInteraction : MonoBehaviour
         selectionBox.sizeDelta = new Vector2(Mathf.Abs(width), Mathf.Abs(height));
         selectionBox.anchoredPosition = startPos + new Vector2(width / 2, height / 2);
     }
+
     public void RemoveNodeConnectFromContextMenuNode(Node nodeConnectionToRemove, GameObject objToDestroy)
     {
         contextMenuNode.RemoveNodeConnection(nodeConnectionToRemove);
