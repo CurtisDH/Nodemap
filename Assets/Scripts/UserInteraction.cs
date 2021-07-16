@@ -52,6 +52,7 @@ public class UserInteraction : MonoBehaviour
 
     [SerializeField] private GameObject[] emptyRightClickContextMenus;
     private bool _bConnectionTool = true, _bMoveTool, _bHoveringOverNode;
+    [SerializeField] private float zoomTowardsMouseFactor;
 
     private void OnEnable()
     {
@@ -185,7 +186,8 @@ public class UserInteraction : MonoBehaviour
             //TODO: Allow user to drag camera around while menu is open -- Annoying to edit nodes 
             //TODO: Implement Escape key to back out of all menus
             CameraControl();
-            ClickAndDrag();
+            ClickAndDrag(2);
+            ClickAndDrag(0);
             RightClickContextMenu();
         }
     }
@@ -220,25 +222,27 @@ public class UserInteraction : MonoBehaviour
         }
     }
 
-    private void ClickAndDrag()
+    private void ClickAndDrag(int mouseButton)
     {
-        if (Input.GetMouseButton(0))
+        if (Input.GetMouseButton(mouseButton))
         {
-            if (Input.GetMouseButtonDown(0))
+            if (Input.GetMouseButtonDown(mouseButton))
             {
                 _origin = Input.mousePosition;
                 return;
             }
-
-            nodeUICanvas.SetActive(false);
-            foreach (var element in nodeContextMenus)
+            if(mouseButton == 0)
             {
-                foreach (var menu in emptyRightClickContextMenus)
+                nodeUICanvas.SetActive(false);
+                foreach (var element in nodeContextMenus)
                 {
-                    menu.SetActive(false);
-                }
+                    foreach (var menu in emptyRightClickContextMenus)
+                    {
+                        menu.SetActive(false);
+                    }
 
-                element.SetActive(false);
+                    element.SetActive(false);
+                }
             }
 
             Cursor.lockState = CursorLockMode.Locked;
@@ -327,6 +331,16 @@ public class UserInteraction : MonoBehaviour
 
     private void CameraControl()
     {
+        if (Input.GetAxis("Mouse ScrollWheel") > 0)
+        {
+            Vector3 mousePos = Input.mousePosition;
+            mousePos = _mainCam.ScreenToWorldPoint(mousePos);
+            var position = this.transform.position;
+            position = Vector3.MoveTowards(position,
+                new Vector3(mousePos.x,mousePos.y,position.z),zoomTowardsMouseFactor);
+            this.transform.position = position;
+        }
+
         if (invertedCameraZoom)
         {
             _mainCam.orthographicSize += cameraIncrement * Input.GetAxis("Mouse ScrollWheel");

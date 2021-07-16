@@ -3797,7 +3797,7 @@ MonoBehaviour:
   invertedCameraZoom: 0
   invertedCamera: 1
   cameraIncrement: 20
-  cameraDragSpeed: 20
+  cameraDragSpeed: 55
   contextMenuYOffset: 5
   contextMenuZOffset: 10
   nodeContextMenus:
@@ -3808,6 +3808,7 @@ MonoBehaviour:
   emptyRightClickContextMenus:
   - {fileID: 1424171718}
   - {fileID: 1189008319}
+  zoomTowardsMouseFactor: 3
 --- !u!120 &519420034
 LineRenderer:
   m_ObjectHideFlags: 0
