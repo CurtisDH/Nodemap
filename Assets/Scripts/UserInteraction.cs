@@ -23,6 +23,8 @@ public class UserInteraction : MonoBehaviour
     [Tooltip("If we right click, the ContextMenuNode is set to the one over the mouse position.")] [SerializeField]
     private Node contextMenuNode;
 
+    public Node GetContextMenuNode => contextMenuNode;
+
     private Camera _mainCam;
 
     [Tooltip("If we're hovering over a ContextMenu this is set to true.")] [SerializeField]
@@ -62,6 +64,8 @@ public class UserInteraction : MonoBehaviour
         EventManager.Listen("OnMouseExitNode",OnMouseExitNode );
     }
 
+    //TODO make all methods that are interacted with by ui end with UI
+    
     private void OnMouseExitNode()
     {
         _bHoveringOverNode = false;

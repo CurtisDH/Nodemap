@@ -8,6 +8,7 @@ using TMPro;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.Serialization;
 using UnityEngine.UI;
 
 namespace UI
@@ -21,10 +22,19 @@ namespace UI
         private List<GameObject> populatedButtons = new List<GameObject>();
         [SerializeField] private GameObject[] MenuCanvasUIs;
         [SerializeField] private GameObject nodePrefab;
-        [SerializeField] private TMP_InputField nameInputField, sizeInputField;
+        [SerializeField] private TMP_InputField nameInputField;
+        [FormerlySerializedAs("sizeInputField")] [SerializeField] private TMP_InputField sizeXInputField;
+        [SerializeField] private TMP_InputField sizeYInputField;
         [SerializeField] private GameObject nodeContainer;
         [SerializeField] private UserInteraction userInt;
         [SerializeField] private string lastOpenedPathCfg = "LastOpenedPath.cfg";
+
+        [Header("Advanced Configuration Panel")] 
+        [SerializeField] private Button ChangeName, ChangeColour, ViewConnections,ChangeSize;
+        
+        [FormerlySerializedAs("editInputX")] [SerializeField] private TMP_InputField editMenuInputX;
+        [FormerlySerializedAs("editInputY")] [SerializeField] private TMP_InputField editMenuInputY;
+        [SerializeField] private TMP_InputField editMenuInputName;
 
 
         public static UIManager Instance
@@ -45,6 +55,7 @@ namespace UI
         public void Awake()
         {
             _instance = this;
+            selectedSprite = null;
         }
 
         public void PopulateConnections(List<Node> nodeConnections)
@@ -100,7 +111,7 @@ namespace UI
             MenuCanvasUIs[index].SetActive(true);
             EventManager.RaiseEvent("OnNodeSelectFromContextMenu", node);
         }
-
+        private Sprite selectedSprite = null;
         public void CreateNode()
         {
             var obj = Instantiate(nodePrefab, parent: nodeContainer.transform);
@@ -109,25 +120,78 @@ namespace UI
             obj.name = name;
             node.SetName(name);
             node.SetColour(Color.white); // TODO: implement a colour wheel or hex translation -- prefer a wheel.
+            var collider = node.GetCollider;
+            collider.size = node.transform.localScale;
+            // I think unity handles != differently. So as far as im aware is not is faster
+            if (selectedSprite is not null) 
+            {
+                node.imageComp.sprite = selectedSprite;
+                selectedSprite = null;
+            }
+            SetNodeSize(node,sizeXInputField,sizeYInputField);
+        }
+
+        private void SetNodeSize(Node node, TMP_InputField xInputField, TMP_InputField yInputField)
+        {
             try
             {
-                var val = float.Parse(sizeInputField.text);
-                node.SetSize(val);
+                float x = 0;
+                float y = 0;
+                if (!string.IsNullOrEmpty(xInputField.text))
+                {
+                    x = float.Parse(xInputField.text);
+                }
+                if (!string.IsNullOrEmpty(yInputField.text))
+                {
+                    y = float.Parse(yInputField.text);
+                }
+                
+                if (x == 0)
+                {
+                    x = y;
+                    if (y == 0)
+                    {
+                        x = 1;
+                        y = 1;
+                    }
+                }
+
+                if (y == 0)
+                {
+                    y = x;
+                    if (x == 0)
+                    {
+                        x = 1;
+                        y = 1;
+                    }
+                }
+                node.SetSize(x,y);
             }
             catch (Exception e)
             {
                 float size = 1;
                 Debug.LogWarning($"Exception returning {size}:{e.Message}");
-                node.SetSize(size);
+                node.SetSize(size,size);
                 return;
             }
         }
-        public void OpenFileBrowser()
+        public void ChangeContextMenuNodeSize() //TODO Make this a draggable resizer instead of text based edit
         {
-            //TODO store last opened file in json
-            var paths = StandaloneFileBrowser.OpenFilePanel("Select Image", GetLastOpenedPath(), "", false);
-            using FileStream fs = File.OpenWrite(Application.persistentDataPath + @"/" + lastOpenedPathCfg);
+            SetNodeSize(userInt.GetContextMenuNode,editMenuInputX,editMenuInputY);
+        }
 
+        public void ChangeContextMenuNodeName()
+        {
+            userInt.GetContextMenuNode.SetName(editMenuInputName.text);
+        }
+        //Image selection
+        public void OpenFileBrowser() //TODO rename this to something more descriptive and reattach script to button
+        {
+            var paths = StandaloneFileBrowser.OpenFilePanel("Select Image", GetLastOpenedPath(), "", false);
+            if (paths.Length is not 0)
+            {
+                using FileStream fs = File.OpenWrite(Application.persistentDataPath + @"/" + lastOpenedPathCfg);
+            
             Byte[] data = new UTF8Encoding(true).GetBytes(paths[0]);
             fs.Write(data, 0, data.Length);
 
@@ -135,11 +199,16 @@ namespace UI
             {
                 Debug.Log(path);
             }
+
+            var image = new ImageDetails(paths[0]);
+            selectedSprite = image.TextureSprite;
+            //Draw onto the sprite
+            }
         }
 
         private string GetLastOpenedPath()
         {
-            try
+            try //TODO remove try statements in entire project -- They are more expensive than necessary
             {
                 return Path.GetDirectoryName(
                     File.ReadAllText(Application.persistentDataPath + "/" + lastOpenedPathCfg));
@@ -173,6 +242,7 @@ namespace UI
         public string Directory;
         public string Extension;
         public string FullPath;
+        public Sprite TextureSprite;
 
         public ImageDetails(string filePath)
         {
@@ -181,6 +251,24 @@ namespace UI
             FileNameWithExtension = Path.GetFileNameWithoutExtension(filePath);
             Directory = Path.GetDirectoryName(filePath);
             FullPath = filePath;
+            TextureSprite = GetSpriteFromTexture2D(GetTexture2DFromPath(filePath));
+        }
+
+        private Texture2D GetTexture2DFromPath(string path)
+        {
+            var byteArray = File.ReadAllBytes(path);
+            Texture2D txt2D = new(1, 1);
+            txt2D.LoadImage(byteArray);
+            return txt2D;
+        }
+
+        private Sprite GetSpriteFromTexture2D(Texture2D texture2D)
+        {
+            var sprite = Sprite.Create(texture2D,
+                new Rect(0, 0, texture2D.width, texture2D.height),
+                new Vector2(0, 0));
+            Debug.Log(sprite.pivot);
+            return sprite;
         }
     }
 }

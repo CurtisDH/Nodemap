@@ -1,8 +1,11 @@
 using System;
 using System.Collections.Generic;
 using Managers.EventManager;
+using TMPro;
 using UI;
 using UnityEngine;
+using UnityEngine.Serialization;
+using UnityEngine.UI;
 
 public class Node : MonoBehaviour
 {
@@ -14,24 +17,28 @@ public class Node : MonoBehaviour
 
     [SerializeField] private GameObject prefabTemp;
     [SerializeField] private float lineSize;
-
-    [SerializeField] private SpriteRenderer mat;
-    private Color userSetColour = new Color();
+    [SerializeField] private Sprite _sprite;
+    public Image imageComp;
+    [SerializeField] private BoxCollider2D collider2D;
+    public BoxCollider2D GetCollider => collider2D;
+    private Color _userSetColour = new Color();
+    [SerializeField] private TextMeshProUGUI nameText;
 
     public void SetName(string str)
     {
+        nameText.text = str;
         _name = str;
     }
 
     public void SetColour(Color color)
     {
-        mat.color = color;
-        userSetColour = color;
+        imageComp.color = color;
+        _userSetColour = color;
     }
 
-    public void SetSize(float size)
+    public void SetSize(float sizeX,float sizeY)
     {
-        transform.localScale = new Vector3(size, size, size); //TODO support dynamic size scaling of node.
+        transform.localScale = new Vector3(sizeX, sizeY, 1); //TODO support dynamic size scaling of node.
     }
 
     public void AddNodeConnection(Node node, bool updateOtherNode = true)
@@ -84,10 +91,10 @@ public class Node : MonoBehaviour
     {
         if (toggle)
         {
-            mat.color = Color.red;
+            imageComp.color = Color.red;
             return;
         }
-        mat.color = userSetColour;
+        imageComp.color = _userSetColour;
     }
     
     public void RedrawLineRendererConnections(bool allNodes = true) //TODO:probably more expensive than it should be
@@ -131,7 +138,7 @@ public class Node : MonoBehaviour
             connection.RedrawLineRendererConnections();
         }
     }
-
+    
     private void OnMouseDown()
     {
         EventManager.RaiseEvent("NodeMouseDown", this);
