@@ -28,7 +28,7 @@ namespace UI
         [SerializeField] private GameObject nodeContainer;
         [SerializeField] private UserInteraction userInt;
         [SerializeField] private string lastOpenedPathCfg = "LastOpenedPath.cfg";
-
+        private Sprite selectedSprite = null;
         [Header("Advanced Configuration Panel")] 
         [SerializeField] private Button ChangeName, ChangeColour, ViewConnections,ChangeSize;
         
@@ -110,8 +110,18 @@ namespace UI
 
             MenuCanvasUIs[index].SetActive(true);
             EventManager.RaiseEvent("OnNodeSelectFromContextMenu", node);
+            userInt.ToggleContextMenu(false);
+            if (Camera.main is not null)
+            {
+                var camTransform = Camera.main.transform;
+                var nodeTransform = node.transform;
+                var position = nodeTransform.position;
+                camTransform.position =
+                    new Vector3(position.x, position.y, camTransform.position.z);
+            }
+
+            userInt.MoveMenusToNode(node);
         }
-        private Sprite selectedSprite = null;
         public void CreateNode()
         {
             var obj = Instantiate(nodePrefab, parent: nodeContainer.transform);

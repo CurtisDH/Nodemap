@@ -19,7 +19,7 @@ public class Node : MonoBehaviour
     [SerializeField] private float lineSize;
     [SerializeField] private Sprite _sprite;
     public Image imageComp;
-    [SerializeField] private BoxCollider2D collider2D;
+    [SerializeField] private new BoxCollider2D collider2D;
     public BoxCollider2D GetCollider => collider2D;
     private Color _userSetColour = new Color();
     [SerializeField] private TextMeshProUGUI nameText;

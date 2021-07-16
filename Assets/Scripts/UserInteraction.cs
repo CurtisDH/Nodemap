@@ -51,7 +51,7 @@ public class UserInteraction : MonoBehaviour
     private GameObject nodeUICanvas;
 
     [SerializeField] private GameObject[] emptyRightClickContextMenus;
-    private bool _bConnectionTool = true, _bMoveTool,_bHoveringOverNode;
+    private bool _bConnectionTool = true, _bMoveTool, _bHoveringOverNode;
 
     private void OnEnable()
     {
@@ -61,15 +61,16 @@ public class UserInteraction : MonoBehaviour
         EventManager.Listen("NodeMouseRightClick", (Action<Node>) OnNodeMouseRightClick);
         EventManager.Listen("OnContextMenuHover", (Action<bool>) ToggleContextMenu);
         EventManager.Listen("OnNodeSelectFromContextMenu", (Action<Node>) ChangeSelectedNode);
-        EventManager.Listen("OnMouseExitNode",OnMouseExitNode );
+        EventManager.Listen("OnMouseExitNode", OnMouseExitNode);
     }
 
     //TODO make all methods that are interacted with by ui end with UI
-    
+
     private void OnMouseExitNode()
     {
         _bHoveringOverNode = false;
     }
+
     private void ChangeSelectedNode(Node node)
     {
         contextMenuNode = node;
@@ -94,6 +95,23 @@ public class UserInteraction : MonoBehaviour
         _bMoveTool = true;
     }
 
+    public void MoveMenusToNode(Node node)
+    {
+        foreach (var menu in nodeContextMenus)
+        {
+            menu.transform.position =
+                new Vector3(node.transform.position.x,
+                    node.transform.position.y + contextMenuYOffset, contextMenuZOffset);
+        }
+
+        foreach (var m in emptyRightClickContextMenus)
+        {
+            m.transform.position =
+                new Vector3(node.transform.position.x,
+                    node.transform.position.y + contextMenuYOffset, contextMenuZOffset);
+        }
+    }
+
     private void DisableNodeContextMenus()
     {
         foreach (var menu in nodeContextMenus)
@@ -109,6 +127,7 @@ public class UserInteraction : MonoBehaviour
             menu.SetActive(false);
         }
     }
+
     private void OnNodeMouseRightClick(Node node)
     {
         DisableEmptyRightClickContextMenu();
@@ -121,6 +140,7 @@ public class UserInteraction : MonoBehaviour
             contextMenu.transform.position = new Vector3(nodePos.x,
                 nodePos.y - contextMenuYOffset, contextMenuZOffset);
         }
+
         contextMenuNode = node;
     }
 
@@ -158,6 +178,7 @@ public class UserInteraction : MonoBehaviour
             NodeControl();
             return;
         }
+
         //TODO: Add keybinds for tool shortcuts -- e.g V=Move/Selection Tool, C=Connections,N=Create new node etc..
         if (!hoveringOverContextMenu)
         {
@@ -169,17 +190,17 @@ public class UserInteraction : MonoBehaviour
         }
     }
 
-    public void RemoveNodeConnectFromContextMenuNode(Node nodeConnectionToRemove,GameObject objToDestroy)
+    public void RemoveNodeConnectFromContextMenuNode(Node nodeConnectionToRemove, GameObject objToDestroy)
     {
         contextMenuNode.RemoveNodeConnection(nodeConnectionToRemove);
         nodeConnectionToRemove.Highlight(false);
         Destroy(objToDestroy);
     }
-    
+
     private void RightClickContextMenu()
     {
         //TODO: Add a selection tool in which you can click and drag to select multiple nodes and interact with them
-        if(!_bHoveringOverNode)
+        if (!_bHoveringOverNode)
         {
             if (Input.GetMouseButtonDown(1))
             {
@@ -190,7 +211,8 @@ public class UserInteraction : MonoBehaviour
                 foreach (var menu in emptyRightClickContextMenus)
                 {
                     menu.SetActive(false); //deactivate all previous menus
-                    menu.transform.position = new Vector3(worldSpacemousePos.x, worldSpacemousePos.y, contextMenuZOffset);
+                    menu.transform.position =
+                        new Vector3(worldSpacemousePos.x, worldSpacemousePos.y, contextMenuZOffset);
                 }
 
                 emptyRightClickContextMenus[0].SetActive(true); // this should always be the primary menu.
@@ -215,8 +237,10 @@ public class UserInteraction : MonoBehaviour
                 {
                     menu.SetActive(false);
                 }
+
                 element.SetActive(false);
             }
+
             Cursor.lockState = CursorLockMode.Locked;
             if (!invertedCamera)
             {
@@ -244,7 +268,7 @@ public class UserInteraction : MonoBehaviour
         var mousePosition = (Input.mousePosition);
         Vector3 worldSpacemousePos = _mainCam.ScreenToWorldPoint(new Vector3(
             mousePosition.x, mousePosition.y, 20));
-        
+
         if (_bConnectionTool)
         {
             if (Input.GetMouseButtonDown(0))
@@ -300,14 +324,15 @@ public class UserInteraction : MonoBehaviour
         }
     }
 
+
     private void CameraControl()
     {
         if (invertedCameraZoom)
         {
-            _mainCam.fieldOfView += cameraIncrement * Input.GetAxis("Mouse ScrollWheel");
+            _mainCam.orthographicSize += cameraIncrement * Input.GetAxis("Mouse ScrollWheel");
             return;
         }
 
-        _mainCam.fieldOfView -= cameraIncrement * Input.GetAxis("Mouse ScrollWheel");
+        _mainCam.orthographicSize -= cameraIncrement * Input.GetAxis("Mouse ScrollWheel");
     }
 }
