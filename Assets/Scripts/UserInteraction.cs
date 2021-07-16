@@ -470,13 +470,15 @@ public class UserInteraction : MonoBehaviour
                 new Vector3(mousePos.x, mousePos.y, position.z), zoomTowardsMouseFactor);
             this.transform.position = position;
         }
-
+        if (_mainCam.orthographicSize <= 2)
+        {
+            _mainCam.orthographicSize = 3;
+        }
         if (invertedCameraZoom)
         {
             _mainCam.orthographicSize += cameraIncrement * Input.GetAxis("Mouse ScrollWheel");
             return;
         }
-
         _mainCam.orthographicSize -= cameraIncrement * Input.GetAxis("Mouse ScrollWheel");
     }
 }

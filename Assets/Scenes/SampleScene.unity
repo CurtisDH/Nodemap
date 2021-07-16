@@ -4065,9 +4065,13 @@ MonoBehaviour:
   emptyRightClickContextMenus:
   - {fileID: 1424171718}
   - {fileID: 1189008319}
-  zoomTowardsMouseFactor: 3
+  zoomTowardsMouseFactor: 2
   selectedNodes: []
+  OnMultiSelectNode: {fileID: 0}
+  bSelecting: 0
+  startPos: {x: 0, y: 0}
   selectionBox: {fileID: 166970288}
+  posMouse: {x: 0, y: 0}
 --- !u!120 &519420034
 LineRenderer:
   m_ObjectHideFlags: 0
