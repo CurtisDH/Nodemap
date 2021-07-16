@@ -116,8 +116,9 @@ namespace UI
             }
             catch (Exception e)
             {
-                Console.WriteLine(e);
-                node.SetSize(1);
+                float size = 1;
+                Debug.LogWarning($"Exception returning {size}:{e.Message}");
+                node.SetSize(size);
                 return;
             }
         }
@@ -138,8 +139,17 @@ namespace UI
 
         private string GetLastOpenedPath()
         {
-            return Path.GetDirectoryName(
-                File.ReadAllText(Application.persistentDataPath + "/" + lastOpenedPathCfg));
+            try
+            {
+                return Path.GetDirectoryName(
+                    File.ReadAllText(Application.persistentDataPath + "/" + lastOpenedPathCfg));
+            }
+            catch (Exception e)
+            {
+                
+                Debug.Log("Caught Exception:"+e.Message);
+                return Application.persistentDataPath;
+            }
         }
 
         private void Update()
