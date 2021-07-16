@@ -36,7 +36,7 @@ public class Node : MonoBehaviour
         _userSetColour = color;
     }
 
-    public void SetSize(float sizeX,float sizeY)
+    public void SetSize(float sizeX, float sizeY)
     {
         transform.localScale = new Vector3(sizeX, sizeY, 1); //TODO support dynamic size scaling of node.
     }
@@ -83,6 +83,7 @@ public class Node : MonoBehaviour
         {
             node.RemoveNodeConnection(this, false);
         }
+
         connections.Remove(node); //TODO remove line renderer once destroyed
         RedrawLineRendererConnections(false);
     }
@@ -94,9 +95,10 @@ public class Node : MonoBehaviour
             imageComp.color = Color.red;
             return;
         }
+
         imageComp.color = _userSetColour;
     }
-    
+
     public void RedrawLineRendererConnections(bool allNodes = true) //TODO:probably more expensive than it should be
     {
         lr.positionCount = 0;
@@ -128,6 +130,7 @@ public class Node : MonoBehaviour
         {
             TempList.Add(n);
         }
+
         foreach (var nodeConnection in TempList)
         {
             nodeConnection.RemoveNodeConnection(this);
@@ -138,7 +141,7 @@ public class Node : MonoBehaviour
             connection.RedrawLineRendererConnections();
         }
     }
-    
+
     private void OnMouseDown()
     {
         EventManager.RaiseEvent("NodeMouseDown", this);

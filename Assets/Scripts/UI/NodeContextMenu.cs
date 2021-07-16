@@ -8,14 +8,14 @@ namespace UI
     {
         private void OnMouseOver()
         {
-            EventManager.RaiseEvent("OnContextMenuHover",true);
+            EventManager.RaiseEvent("OnContextMenuHover", true);
         }
 
         private void OnMouseExit()
         {
             if (!Input.GetMouseButton(0))
             {
-                EventManager.RaiseEvent("OnContextMenuHover",false);
+                EventManager.RaiseEvent("OnContextMenuHover", false);
             }
         }
     }

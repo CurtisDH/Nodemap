@@ -9,6 +9,7 @@ namespace Managers.EventManager
         private static Dictionary<string, dynamic> _eventDictionary = new Dictionary<string, dynamic>();
 
         #region Listen
+
         public static void Listen(string eventName, Action method)
         {
             if (_eventDictionary.ContainsKey(eventName))
@@ -22,6 +23,7 @@ namespace Managers.EventManager
                 _eventDictionary.Add(eventName, method);
             }
         }
+
         public static void Listen<T>(string eventName, Action<T> method)
         {
             if (_eventDictionary.ContainsKey(eventName))
@@ -35,6 +37,7 @@ namespace Managers.EventManager
                 _eventDictionary.Add(eventName, method);
             }
         }
+
         public static void Listen<T, Q>(string eventName, Action<T, Q> method)
         {
             if (_eventDictionary.ContainsKey(eventName))
@@ -48,6 +51,7 @@ namespace Managers.EventManager
                 _eventDictionary.Add(eventName, method);
             }
         }
+
         public static void Listen<T, Q, R>(string eventName, Action<T, Q, R> method)
         {
             if (_eventDictionary.ContainsKey(eventName))
@@ -61,6 +65,7 @@ namespace Managers.EventManager
                 _eventDictionary.Add(eventName, method);
             }
         }
+
         public static void Listen<T, Q, R, Z>(string eventName, Action<T, Q, R, Z> method)
         {
             if (_eventDictionary.ContainsKey(eventName))
@@ -74,7 +79,9 @@ namespace Managers.EventManager
                 _eventDictionary.Add(eventName, method);
             }
         }
+
         #endregion
+
         #region Raising Events
 
         public static void RaiseEvent(string eventName)
@@ -88,8 +95,8 @@ namespace Managers.EventManager
             {
                 //Debug.Log(e.Data);
             }
-
         }
+
         public static void RaiseEvent<T>(string eventName, T arg)
         {
             try
@@ -99,10 +106,9 @@ namespace Managers.EventManager
             }
             catch
             {
-
             }
-
         }
+
         public static void RaiseEvent<T, Q>(string eventName, T arg, Q arg1)
         {
             try
@@ -112,10 +118,9 @@ namespace Managers.EventManager
             }
             catch
             {
-
             }
-
         }
+
         public static void RaiseEvent<T, Q, R>(string eventName, T arg, Q arg1, R arg2)
         {
             try
@@ -125,10 +130,9 @@ namespace Managers.EventManager
             }
             catch
             {
-
             }
-
         }
+
         public static void RaiseEvent<T, Q, R, Z>(string eventName, T arg, Q arg1, R arg2, Z arg3)
         {
             try
@@ -138,12 +142,13 @@ namespace Managers.EventManager
             }
             catch
             {
-
             }
-
         }
+
         #endregion
+
         #region Unsubscribing methods
+
         public static void UnsubscribeEvent(string eventName, Action method)
         {
             var eventToUnsubscribe = _eventDictionary[eventName];
@@ -157,26 +162,28 @@ namespace Managers.EventManager
             eventToUnsubscribe -= method;
             _eventDictionary[eventName] = eventToUnsubscribe;
         }
+
         public static void UnsubscribeEvent<T, Q>(string eventName, Action<T, Q> method)
         {
             var eventToUnsubscribe = _eventDictionary[eventName];
             eventToUnsubscribe -= method;
             _eventDictionary[eventName] = eventToUnsubscribe;
         }
+
         public static void UnsubscribeEvent<T, Q, R>(string eventName, Action<T, Q, R> method)
         {
             var eventToUnsubscribe = _eventDictionary[eventName];
             eventToUnsubscribe -= method;
             _eventDictionary[eventName] = eventToUnsubscribe;
         }
+
         public static void UnsubscribeEvent<T, Q, R, Z>(string eventName, Action<T, Q, R, Z> method)
         {
             var eventToUnsubscribe = _eventDictionary[eventName];
             eventToUnsubscribe -= method;
             _eventDictionary[eventName] = eventToUnsubscribe;
         }
-        
-        #endregion
 
+        #endregion
     }
 }

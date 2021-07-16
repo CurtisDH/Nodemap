@@ -23,17 +23,25 @@ namespace UI
         [SerializeField] private GameObject[] MenuCanvasUIs;
         [SerializeField] private GameObject nodePrefab;
         [SerializeField] private TMP_InputField nameInputField;
-        [FormerlySerializedAs("sizeInputField")] [SerializeField] private TMP_InputField sizeXInputField;
+
+        [FormerlySerializedAs("sizeInputField")] [SerializeField]
+        private TMP_InputField sizeXInputField;
+
         [SerializeField] private TMP_InputField sizeYInputField;
         [SerializeField] private GameObject nodeContainer;
         [SerializeField] private UserInteraction userInt;
         [SerializeField] private string lastOpenedPathCfg = "LastOpenedPath.cfg";
         private Sprite selectedSprite = null;
-        [Header("Advanced Configuration Panel")] 
-        [SerializeField] private Button ChangeName, ChangeColour, ViewConnections,ChangeSize;
-        
-        [FormerlySerializedAs("editInputX")] [SerializeField] private TMP_InputField editMenuInputX;
-        [FormerlySerializedAs("editInputY")] [SerializeField] private TMP_InputField editMenuInputY;
+
+        [Header("Advanced Configuration Panel")] [SerializeField]
+        private Button ChangeName, ChangeColour, ViewConnections, ChangeSize;
+
+        [FormerlySerializedAs("editInputX")] [SerializeField]
+        private TMP_InputField editMenuInputX;
+
+        [FormerlySerializedAs("editInputY")] [SerializeField]
+        private TMP_InputField editMenuInputY;
+
         [SerializeField] private TMP_InputField editMenuInputName;
 
 
@@ -122,6 +130,7 @@ namespace UI
 
             userInt.MoveMenusToNode(node);
         }
+
         public void CreateNode()
         {
             var obj = Instantiate(nodePrefab, parent: nodeContainer.transform);
@@ -133,12 +142,13 @@ namespace UI
             var collider = node.GetCollider;
             collider.size = node.transform.localScale;
             // I think unity handles != differently. So as far as im aware is not is faster
-            if (selectedSprite is not null) 
+            if (selectedSprite is not null)
             {
                 node.imageComp.sprite = selectedSprite;
                 selectedSprite = null;
             }
-            SetNodeSize(node,sizeXInputField,sizeYInputField);
+
+            SetNodeSize(node, sizeXInputField, sizeYInputField);
         }
 
         private void SetNodeSize(Node node, TMP_InputField xInputField, TMP_InputField yInputField)
@@ -151,11 +161,12 @@ namespace UI
                 {
                     x = float.Parse(xInputField.text);
                 }
+
                 if (!string.IsNullOrEmpty(yInputField.text))
                 {
                     y = float.Parse(yInputField.text);
                 }
-                
+
                 if (x == 0)
                 {
                     x = y;
@@ -175,25 +186,28 @@ namespace UI
                         y = 1;
                     }
                 }
-                node.SetSize(x,y);
+
+                node.SetSize(x, y);
             }
             catch (Exception e)
             {
                 float size = 1;
                 Debug.LogWarning($"Exception returning {size}:{e.Message}");
-                node.SetSize(size,size);
+                node.SetSize(size, size);
                 return;
             }
         }
+
         public void ChangeContextMenuNodeSize() //TODO Make this a draggable resizer instead of text based edit
         {
-            SetNodeSize(userInt.GetContextMenuNode,editMenuInputX,editMenuInputY);
+            SetNodeSize(userInt.GetContextMenuNode, editMenuInputX, editMenuInputY);
         }
 
         public void ChangeContextMenuNodeName()
         {
             userInt.GetContextMenuNode.SetName(editMenuInputName.text);
         }
+
         //Image selection
         public void OpenFileBrowser() //TODO rename this to something more descriptive and reattach script to button
         {
@@ -201,18 +215,18 @@ namespace UI
             if (paths.Length is not 0)
             {
                 using FileStream fs = File.OpenWrite(Application.persistentDataPath + @"/" + lastOpenedPathCfg);
-            
-            Byte[] data = new UTF8Encoding(true).GetBytes(paths[0]);
-            fs.Write(data, 0, data.Length);
 
-            foreach (var path in paths)
-            {
-                Debug.Log(path);
-            }
+                Byte[] data = new UTF8Encoding(true).GetBytes(paths[0]);
+                fs.Write(data, 0, data.Length);
 
-            var image = new ImageDetails(paths[0]);
-            selectedSprite = image.TextureSprite;
-            //Draw onto the sprite
+                foreach (var path in paths)
+                {
+                    Debug.Log(path);
+                }
+
+                var image = new ImageDetails(paths[0]);
+                selectedSprite = image.TextureSprite;
+                //Draw onto the sprite
             }
         }
 
@@ -225,8 +239,7 @@ namespace UI
             }
             catch (Exception e)
             {
-                
-                Debug.Log("Caught Exception:"+e.Message);
+                Debug.Log("Caught Exception:" + e.Message);
                 return Application.persistentDataPath;
             }
         }
