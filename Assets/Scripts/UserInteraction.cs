@@ -246,7 +246,7 @@ public class UserInteraction : MonoBehaviour
     [SerializeField] private RectTransform selectionBox;
     [SerializeField] private Vector2 posMouse;
 
-    public void SelectionTool()
+    public void SelectionTool() //TODO, allow modification of all selected nodes - i.e edit all the sizes at once.
     {
         if (Input.GetKey(KeyCode.LeftControl))
         {
@@ -256,7 +256,7 @@ public class UserInteraction : MonoBehaviour
                 foreach (var node in selectedNodes)
                 {
                     var n = Instantiate(node, parent: node.transform.parent.transform);
-                    n.transform.position = node.transform.position + worldMousePos/2;
+                    n.transform.position = node.transform.position + node.transform.localScale;
                     n.CopyFromOtherNode(node);
                 }
             }

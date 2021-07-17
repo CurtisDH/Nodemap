@@ -24,7 +24,8 @@ public class Node : MonoBehaviour
     private Color _userSetColour = new Color();
     [SerializeField] private TextMeshProUGUI nameText;
     private Vector3 _userSetSize;
-    
+    [SerializeField] private GameObject scalePointContainer;
+
     public void SetName(string str)
     {
         nameText.text = str;
@@ -141,7 +142,6 @@ public class Node : MonoBehaviour
     {
         SetColour(node.GetOriginalColour());
         SetName(node.name);
-
     }
 
     private void OnDestroy()
