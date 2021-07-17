@@ -173,6 +173,7 @@ public class UserInteraction : MonoBehaviour
     {
         //TODO Send a second prompt to confirm
         Destroy(contextMenuNode.gameObject); //TODO put into a deactivated menu where CTRL-Z can bring back the Node.
+        //idea.. Serialize all data after every action -- Probably very expensive.. Ctrl-Z loads the data
     }
 
     public void ViewSelectedNodeConnections()
@@ -247,6 +248,29 @@ public class UserInteraction : MonoBehaviour
 
     public void SelectionTool()
     {
+        if (Input.GetKey(KeyCode.LeftControl))
+        {
+            if (Input.GetKeyDown(KeyCode.V))
+            {
+                var worldMousePos = _mainCam.ScreenToWorldPoint(Input.mousePosition);
+                foreach (var node in selectedNodes)
+                {
+                    var n = Instantiate(node, parent: node.transform.parent.transform);
+                    n.transform.position = node.transform.position + worldMousePos/2;
+                    n.CopyFromOtherNode(node);
+                }
+            }
+        }
+
+        if (Input.GetKeyDown(KeyCode.Delete))
+        {
+            //TODO add a confirm prompt
+            foreach (var node in selectedNodes)
+            {
+                Destroy(node.gameObject); //turn this into a delete method to handle extra details
+            }
+            selectedNodes.Clear();
+        }
         if (_bMultiSelectNodeSelected)
         {
             if (Input.GetMouseButton(0))

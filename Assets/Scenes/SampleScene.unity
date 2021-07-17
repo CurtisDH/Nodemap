@@ -4065,7 +4065,7 @@ MonoBehaviour:
   emptyRightClickContextMenus:
   - {fileID: 1424171718}
   - {fileID: 1189008319}
-  zoomTowardsMouseFactor: 2
+  zoomTowardsMouseFactor: 1
   selectedNodes: []
   OnMultiSelectNode: {fileID: 0}
   bSelecting: 0
@@ -4271,6 +4271,18 @@ MonoBehaviour:
       - m_Target: {fileID: 562187611}
         m_TargetAssemblyTypeName: UnityEngine.GameObject, UnityEngine
         m_MethodName: SetActive
+        m_Mode: 6
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+      - m_Target: {fileID: 519420033}
+        m_TargetAssemblyTypeName: UserInteraction, Assembly-CSharp
+        m_MethodName: ToggleContextMenu
         m_Mode: 6
         m_Arguments:
           m_ObjectArgument: {fileID: 0}

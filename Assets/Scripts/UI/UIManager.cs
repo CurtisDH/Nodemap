@@ -280,8 +280,18 @@ namespace UI
 
         public ImageDetails(string filePath)
         {
-            Extension = Path.GetExtension(filePath);
             FileNameWithExtension = Path.GetFileName(filePath);
+            string persistentPath = Application.persistentDataPath + "/" + FileNameWithExtension;
+            if (File.Exists(persistentPath))
+            {
+                filePath = persistentPath;
+            }
+            else
+            {
+                File.Copy(filePath,persistentPath); //TODO instead of copying just serialize byte array?
+                filePath = persistentPath;
+            }
+            Extension = Path.GetExtension(filePath);
             FileNameWithExtension = Path.GetFileNameWithoutExtension(filePath);
             Directory = Path.GetDirectoryName(filePath);
             FullPath = filePath;

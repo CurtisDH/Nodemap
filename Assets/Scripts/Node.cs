@@ -23,11 +23,13 @@ public class Node : MonoBehaviour
     public BoxCollider2D GetCollider => collider2D;
     private Color _userSetColour = new Color();
     [SerializeField] private TextMeshProUGUI nameText;
-
+    private Vector3 _userSetSize;
+    
     public void SetName(string str)
     {
         nameText.text = str;
         _name = str;
+        gameObject.name = str;
     }
 
     public void SetColour(Color color)
@@ -36,9 +38,21 @@ public class Node : MonoBehaviour
         _userSetColour = color;
     }
 
+    public Color GetOriginalColour()
+    {
+        return _userSetColour;
+    }
+
+    public Vector3 GetSizeScale()
+    {
+        return _userSetSize;
+    }
+
     public void SetSize(float sizeX, float sizeY)
     {
-        transform.localScale = new Vector3(sizeX, sizeY, 1); //TODO support dynamic size scaling of node.
+        Vector3 size = new Vector3(sizeX, sizeY, 1);
+        transform.localScale = size; //TODO support dynamic size scaling of node.
+        _userSetSize = size;
     }
 
     public void AddNodeConnection(Node node, bool updateOtherNode = true)
@@ -121,6 +135,13 @@ public class Node : MonoBehaviour
         }
 
         lr.enabled = true;
+    }
+
+    public void CopyFromOtherNode(Node node)
+    {
+        SetColour(node.GetOriginalColour());
+        SetName(node.name);
+
     }
 
     private void OnDestroy()
