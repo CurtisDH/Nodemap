@@ -56,6 +56,8 @@ public class UserInteraction : MonoBehaviour
     [SerializeField] private float zoomTowardsMouseFactor;
 
     [SerializeField] private List<Node> selectedNodes;
+    [SerializeField] private List<Node> clipboardNodes;
+
 //TODO add ctrl C, ctrl V copy and paste.
     //TODO: Add a selection tool in which you can click and drag to select multiple nodes and interact with them
 
@@ -196,7 +198,7 @@ public class UserInteraction : MonoBehaviour
 
     private void OnNodeMouseDown(Node node)
     {
-        if (!_bSelectTool)
+        if (selectedNodes.Count <= 1)
         {
             selectedNode = node;
             return;
@@ -215,7 +217,7 @@ public class UserInteraction : MonoBehaviour
     void Update() //TODO: Figure out a better way to handle input.. i.e keybindings.
     {
         //TODO: Fix scrollrect issue when hovering over button UI -- if hovering over a button user is unable to scroll.
-        if (selectedNode is not null)
+        if (selectedNode is not null && _bConnectionTool == true)
         {
             NodeControl();
             return;
@@ -225,7 +227,7 @@ public class UserInteraction : MonoBehaviour
         if (!hoveringOverContextMenu)
         {
             SelectionTool();
-            //TODO: Allow user to drag camera around while menu is open -- Annoying to edit nodes 
+            //TODO: Allow user to drag camera around while menu is open -- Annoying to edit nodes
             //TODO: Implement Escape key to back out of all menus
             CameraControl();
             ClickAndDrag(2);
@@ -250,10 +252,19 @@ public class UserInteraction : MonoBehaviour
     {
         if (Input.GetKey(KeyCode.LeftControl))
         {
+            if (Input.GetKeyDown(KeyCode.C))
+            {
+                clipboardNodes.Clear();
+                foreach (var node in selectedNodes)
+                {
+                    clipboardNodes.Add(node);
+                }
+            }
+
             if (Input.GetKeyDown(KeyCode.V))
             {
                 var worldMousePos = _mainCam.ScreenToWorldPoint(Input.mousePosition);
-                foreach (var node in selectedNodes)
+                foreach (var node in clipboardNodes)
                 {
                     var n = Instantiate(node, parent: node.transform.parent.transform);
                     n.transform.position = node.transform.position + node.transform.localScale;
@@ -261,7 +272,25 @@ public class UserInteraction : MonoBehaviour
                 }
             }
         }
+        if(selectedNode is not null && _bMultiSelectNodeSelected == false)
+        {
+            var mousePosition = (Input.mousePosition);
+            Vector3 worldSpacemousePos = _mainCam.ScreenToWorldPoint(new Vector3(
+                mousePosition.x, mousePosition.y, 20));
 
+            if (Input.GetMouseButton(0))
+            {
+                selectedNode.RedrawLineRendererConnections();
+                var position = new Vector3(worldSpacemousePos.x, worldSpacemousePos.y, contextMenuZOffset);
+                selectedNode.transform.position = position;
+            }
+
+            if (Input.GetMouseButtonUp(0))
+            {
+                selectedNode = null;
+            }
+            return;
+        }
         if (Input.GetKeyDown(KeyCode.Delete))
         {
             //TODO add a confirm prompt
@@ -269,8 +298,10 @@ public class UserInteraction : MonoBehaviour
             {
                 Destroy(node.gameObject); //turn this into a delete method to handle extra details
             }
+
             selectedNodes.Clear();
         }
+
         if (_bMultiSelectNodeSelected)
         {
             if (Input.GetMouseButton(0))
@@ -297,7 +328,7 @@ public class UserInteraction : MonoBehaviour
             return;
         }
 
-        if (_bSelectTool)
+        if (_bSelectTool && selectedNode is null)
         {
             if (Input.GetMouseButtonDown(0) && !bSelecting)
             {
@@ -428,7 +459,7 @@ public class UserInteraction : MonoBehaviour
         Vector3 worldSpacemousePos = _mainCam.ScreenToWorldPoint(new Vector3(
             mousePosition.x, mousePosition.y, 20));
 
-        if (_bConnectionTool)
+        if (_bConnectionTool) // not required with the new check
         {
             if (Input.GetMouseButtonDown(0))
             {
@@ -461,24 +492,6 @@ public class UserInteraction : MonoBehaviour
                 endNode = null;
                 lr.enabled = false;
             }
-
-            return;
-        }
-
-        if (_bMoveTool)
-        {
-            if (Input.GetMouseButton(0))
-            {
-                selectedNode.RedrawLineRendererConnections();
-                var position = new Vector3(worldSpacemousePos.x, worldSpacemousePos.y, contextMenuZOffset);
-                selectedNode.transform.position = position;
-            }
-
-            if (Input.GetMouseButtonUp(0))
-            {
-                selectedNode = null;
-            }
-
             return;
         }
     }
@@ -494,15 +507,18 @@ public class UserInteraction : MonoBehaviour
                 new Vector3(mousePos.x, mousePos.y, position.z), zoomTowardsMouseFactor);
             this.transform.position = position;
         }
+
         if (_mainCam.orthographicSize <= 2)
         {
             _mainCam.orthographicSize = 3;
         }
+
         if (invertedCameraZoom)
         {
             _mainCam.orthographicSize += cameraIncrement * Input.GetAxis("Mouse ScrollWheel");
             return;
         }
+
         _mainCam.orthographicSize -= cameraIncrement * Input.GetAxis("Mouse ScrollWheel");
     }
 }
